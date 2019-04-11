@@ -1,12 +1,14 @@
 import * as React from 'react';
 import axios from 'axios';
 import Message from '../Message/Message';
+import Progress from '../Progress/Progress';
 
 const FileUpload = () => {
   const [file, setFile] = React.useState();
   const [fileName, setFileName] = React.useState('Choose File');
   const [uploadedFile, setUploadedFile] = React.useState();
   const [message, setMessage] = React.useState('');
+  const [uploadPercentage, setUploadPercentage] = React.useState(0);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const upFile = e.target.files ? e.target.files[0] : null;
@@ -29,6 +31,12 @@ const FileUpload = () => {
       const res = await axios.post('/upload', formData, {
         headers: {
           'Contant-Type': 'multipart/form-data'
+        },
+        onDownloadProgress: ({ loaded, total }) => {
+          setUploadPercentage(Math.round((loaded * 100) / total));
+
+          // Clear percentage
+          setTimeout(() => setUploadPercentage(0), 10000);
         }
       });
 
@@ -59,12 +67,15 @@ const FileUpload = () => {
           </label>
         </div>
 
+        <Progress percentage={uploadPercentage} />
+
         <input
           className="btn btn-primary btn-block mt-4"
           type="submit"
           value="Upload"
         />
       </form>
+
       {uploadedFile ? (
         <div className="row mt-5">
           <div className="col-md-6 m-auto">
