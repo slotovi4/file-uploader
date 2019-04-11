@@ -1,50 +1,35 @@
 import * as React from 'react';
-import axios from 'axios';
 import Message from '../Message/Message';
 import Progress from '../Progress/Progress';
+import uploadFile from '../../services/uploadFile';
 
 const FileUpload = () => {
-  const [file, setFile] = React.useState('');
+  const [file, setFile] = React.useState();
   const [filename, setFilename] = React.useState('Choose File');
   const [uploadedFile, setUploadedFile] = React.useState();
   const [message, setMessage] = React.useState('');
   const [uploadPercentage, setUploadPercentage] = React.useState(0);
 
-  const onChange = (e: any) => {
-    setFile(e.target.files[0]);
-    setFilename(e.target.files[0].name);
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target && e.target.files) {
+      setFile(e.target.files[0]);
+      setFilename(e.target.files[0].name);
+    }
   };
 
-  const onSubmit = async (e: any) => {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData();
+
     formData.append('file', file);
 
-    try {
-      const res = await axios.post('/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: ({ loaded, total }) => {
-          setUploadPercentage(Math.round((loaded * 100) / total));
-
-          // Clear percentage
-          setTimeout(() => setUploadPercentage(0), 10000);
-        }
-      });
-
-      const { fileName, filePath } = res.data;
-
-      setUploadedFile({ fileName, filePath });
-
-      setMessage('File Uploaded');
-    } catch (err) {
-      if (err.response.status === 500) {
-        setMessage('There was a problem with the server');
-      } else {
-        setMessage(err.response.data.msg);
-      }
-    }
+    uploadFile(formData, setUploadPercentage).then(
+      data => {
+        setUploadedFile({ ...data });
+        setMessage('File Uploaded');
+      },
+      err => setMessage(err)
+    );
   };
 
   return (
