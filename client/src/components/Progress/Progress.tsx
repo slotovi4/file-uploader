@@ -10,8 +10,9 @@ const Progress = ({ percentage }: IProps) => (
       className="progress-bar progress-bar-striped bg-success"
       role="progressbar"
       style={{ width: `${percentage}%` }}
-    />
-    {percentage}%
+    >
+      {percentage}%
+    </div>
   </div>
 );
 
